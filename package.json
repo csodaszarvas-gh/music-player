@@ -1,0 +1,260 @@
+{
+  "name": "music-player",
+  "displayName": "Music Player",
+  "description": "Listen to internet radio (Radio Browser) and local audio/video files without leaving the IDE.",
+  "version": "0.1.0",
+  "publisher": "sky",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/csodaszarvas-gh/music-player.git"
+  },
+  "engines": {
+    "vscode": "^1.102.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "music",
+    "radio",
+    "player",
+    "audio",
+    "video"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "musicPlayer",
+          "title": "Music",
+          "icon": "media/music.svg"
+        }
+      ]
+    },
+    "views": {
+      "musicPlayer": [
+        {
+          "id": "musicPlayer.radioView",
+          "name": "Radio",
+          "icon": "media/music.svg",
+          "contextualTitle": "Music"
+        },
+        {
+          "id": "musicPlayer.libraryView",
+          "name": "Local Files",
+          "icon": "media/music.svg",
+          "contextualTitle": "Music"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "musicPlayer.radioView",
+        "when": "musicPlayer.radioEmpty",
+        "contents": "No radio stations yet.\n[Search Stations](command:musicPlayer.searchRadio)\n[Browse by Tag](command:musicPlayer.browseTags)\nPowered by the community Radio Browser API."
+      },
+      {
+        "view": "musicPlayer.libraryView",
+        "when": "musicPlayer.libraryEmpty",
+        "contents": "No music folders added yet.\n[Add Folder](command:musicPlayer.addFolder)\n[Add Files](command:musicPlayer.addFiles)\nSupports common audio and video formats."
+      }
+    ],
+    "commands": [
+      {
+        "command": "musicPlayer.searchRadio",
+        "title": "Search Radio Stations",
+        "category": "Music Player",
+        "icon": "$(search)"
+      },
+      {
+        "command": "musicPlayer.browseTags",
+        "title": "Browse Radio by Tag",
+        "category": "Music Player",
+        "icon": "$(tag)"
+      },
+      {
+        "command": "musicPlayer.topStations",
+        "title": "Top Radio Stations",
+        "category": "Music Player",
+        "icon": "$(flame)"
+      },
+      {
+        "command": "musicPlayer.playStation",
+        "title": "Play Station",
+        "category": "Music Player",
+        "icon": "$(play)"
+      },
+      {
+        "command": "musicPlayer.toggleFavorite",
+        "title": "Toggle Favorite",
+        "category": "Music Player",
+        "icon": "$(star)"
+      },
+      {
+        "command": "musicPlayer.addFolder",
+        "title": "Add Music Folder",
+        "category": "Music Player",
+        "icon": "$(folder-add)"
+      },
+      {
+        "command": "musicPlayer.addFiles",
+        "title": "Add Music Files",
+        "category": "Music Player",
+        "icon": "$(file-add)"
+      },
+      {
+        "command": "musicPlayer.removeRoot",
+        "title": "Remove from Library",
+        "category": "Music Player",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "musicPlayer.refreshLibrary",
+        "title": "Refresh Library",
+        "category": "Music Player",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "musicPlayer.playFile",
+        "title": "Play File",
+        "category": "Music Player",
+        "icon": "$(play)"
+      },
+      {
+        "command": "musicPlayer.showPlayer",
+        "title": "Show Player",
+        "category": "Music Player",
+        "icon": "$(play-circle)"
+      },
+      {
+        "command": "musicPlayer.playPause",
+        "title": "Play / Pause",
+        "category": "Music Player",
+        "icon": "$(play-circle)"
+      },
+      {
+        "command": "musicPlayer.stop",
+        "title": "Stop Playback",
+        "category": "Music Player",
+        "icon": "$(stop-circle)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "musicPlayer.searchRadio",
+          "when": "view == musicPlayer.radioView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "musicPlayer.browseTags",
+          "when": "view == musicPlayer.radioView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "musicPlayer.topStations",
+          "when": "view == musicPlayer.radioView",
+          "group": "1_more@1"
+        },
+        {
+          "command": "musicPlayer.addFolder",
+          "when": "view == musicPlayer.libraryView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "musicPlayer.addFiles",
+          "when": "view == musicPlayer.libraryView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "musicPlayer.refreshLibrary",
+          "when": "view == musicPlayer.libraryView",
+          "group": "navigation@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "musicPlayer.playStation",
+          "when": "view == musicPlayer.radioView && viewItem =~ /^(station|favoriteStation)$/",
+          "group": "1_play@1"
+        },
+        {
+          "command": "musicPlayer.playStation",
+          "when": "view == musicPlayer.radioView && viewItem =~ /^(station|favoriteStation)$/",
+          "group": "inline@1"
+        },
+        {
+          "command": "musicPlayer.toggleFavorite",
+          "when": "view == musicPlayer.radioView && viewItem =~ /^(station|favoriteStation)$/",
+          "group": "inline@2"
+        },
+        {
+          "command": "musicPlayer.playFile",
+          "when": "view == musicPlayer.libraryView && viewItem == mediaFile",
+          "group": "inline@1"
+        },
+        {
+          "command": "musicPlayer.removeRoot",
+          "when": "view == musicPlayer.libraryView && viewItem == root",
+          "group": "2_manage@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "musicPlayer.playStation",
+          "when": "false"
+        },
+        {
+          "command": "musicPlayer.playFile",
+          "when": "false"
+        },
+        {
+          "command": "musicPlayer.toggleFavorite",
+          "when": "false"
+        },
+        {
+          "command": "musicPlayer.removeRoot",
+          "when": "false"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Music Player",
+      "properties": {
+        "musicPlayer.volume": {
+          "type": "number",
+          "default": 80,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Playback volume in percent."
+        },
+        "musicPlayer.radioResultLimit": {
+          "type": "number",
+          "default": 100,
+          "minimum": 10,
+          "maximum": 500,
+          "description": "Maximum number of radio stations returned by a search."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "dependencies": {
+    "hls.js": "^1.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "~1.102.0",
+    "@vscode/vsce": "^3.0.0",
+    "typescript": "^5.6.0"
+  }
+}
