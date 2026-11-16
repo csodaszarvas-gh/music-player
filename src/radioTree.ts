@@ -1,9 +1,9 @@
 // Radio sidebar: Favorites section (persisted) plus the latest search results.
 
 import * as vscode from 'vscode';
-import { Station } from './radioBrowser';
+import { Station, SearchOptions } from './radioBrowser';
 
-export type RadioNode = SectionItem | StationItem;
+export type RadioNode = SectionItem | StationItem | LoadMoreItem;
 
 export class SectionItem extends vscode.TreeItem {
   constructor(label: string, public readonly section: 'favorites' | 'results', count: number) {
@@ -33,11 +33,25 @@ export class StationItem extends vscode.TreeItem {
   }
 }
 
+export class LoadMoreItem extends vscode.TreeItem {
+  constructor(loaded: number) {
+    super('Load More…', vscode.TreeItemCollapsibleState.None);
+    this.description = loaded + ' loaded';
+    this.contextValue = 'loadMore';
+    this.iconPath = new vscode.ThemeIcon('arrow-down');
+    this.tooltip = 'Fetch the next page of stations for this search';
+    this.command = { command: 'musicPlayer.loadMoreResults', title: 'Load More' };
+  }
+}
+
 export class RadioProvider implements vscode.TreeDataProvider<RadioNode> {
   private readonly emitter = new vscode.EventEmitter<RadioNode | undefined>();
   readonly onDidChangeTreeData = this.emitter.event;
   private results: Station[] = [];
   private resultsLabel = 'Search Results';
+  private query: Omit<SearchOptions, 'limit' | 'offset'> | undefined;
+  private fetched = 0;
+  private exhausted = true;
 
   constructor(private readonly getFavorites: () => Station[]) {}
 
@@ -45,9 +59,38 @@ export class RadioProvider implements vscode.TreeDataProvider<RadioNode> {
     return this.results.length;
   }
 
-  setResults(stations: Station[], label: string): void {
+  get currentQuery(): Omit<SearchOptions, 'limit' | 'offset'> | undefined {
+    return this.query;
+  }
+
+  // Offset for the next page: total rows fetched so far (before dedupe).
+  get nextOffset(): number {
+    return this.fetched;
+  }
+
+  get canLoadMore(): boolean {
+    return this.query !== undefined && !this.exhausted;
+  }
+
+  setResults(stations: Station[], label: string, query: Omit<SearchOptions, 'limit' | 'offset'>, pageSize: number): void {
     this.results = stations;
     this.resultsLabel = label;
+    this.query = query;
+    this.fetched = stations.length;
+    this.exhausted = stations.length < pageSize;
+    this.emitter.fire(undefined);
+  }
+
+  appendResults(stations: Station[], pageSize: number): void {
+    const seen = new Set(this.results.map(s => s.stationuuid));
+    for (const s of stations) {
+      if (!seen.has(s.stationuuid)) {
+        seen.add(s.stationuuid);
+        this.results.push(s);
+      }
+    }
+    this.fetched += stations.length;
+    this.exhausted = stations.length < pageSize;
     this.emitter.fire(undefined);
   }
 
@@ -70,7 +113,11 @@ export class RadioProvider implements vscode.TreeDataProvider<RadioNode> {
     if (element instanceof SectionItem) {
       const list = element.section === 'favorites' ? this.getFavorites() : this.results;
       const favIds = new Set(this.getFavorites().map(s => s.stationuuid));
-      return list.map(s => new StationItem(s, favIds.has(s.stationuuid)));
+      const items: RadioNode[] = list.map(s => new StationItem(s, favIds.has(s.stationuuid)));
+      if (element.section === 'results' && this.canLoadMore) {
+        items.push(new LoadMoreItem(this.results.length));
+      }
+      return items;
     }
     return [];
   }

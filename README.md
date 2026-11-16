@@ -4,7 +4,7 @@ Listen to internet radio and local audio/video files without leaving VS Code or 
 
 ## Features
 
-- **Radio**: search stations by name, browse by tag/genre, country, language or codec, or list the most popular stations; favorite stations are kept between sessions
+- **Radio**: search stations by name, browse by tag/genre, country, language or codec, or list the most popular stations; favorite stations are kept between sessions. Results are paginated — a *Load More…* entry at the bottom of the list fetches the next page, so nothing is capped
 - **Local files**: add music folders or individual files to a library tree and play them (audio and video)
 - Player panel with play/pause, stop, seek (local files), volume and station info; HLS radio streams supported via hls.js
 - Playback keeps running while the player tab is hidden; a status bar item shows the current track (click it to reopen the player)
@@ -38,17 +38,17 @@ Manual alternative: download the `.vsix` from the [latest release](https://githu
 
 After installing, reload the window and open the **Music** icon in the activity bar:
 
-- **Radio** view: use the search / tag / country buttons in the view title (language and codec filters are in the … menu), then click a station (or its play icon) to listen. Star a station to keep it in Favorites.
+- **Radio** view: use the search / tag / country buttons in the view title (language and codec filters are in the … menu), then click a station (or its play icon) to listen. Star a station to keep it in Favorites. Click *Load More…* at the bottom of the results to fetch additional pages.
 - **Local Files** view: *Add Folder* or *Add Files*, then click any media file to play it. Folders are listed lazily, one level at a time.
 - Commands are also available from the palette under *Music Player* (Play / Pause, Stop, Show Player…).
-- Settings: `musicPlayer.volume` (percent) and `musicPlayer.radioResultLimit` (max stations per search).
+- Settings: `musicPlayer.volume` (percent) and `musicPlayer.radioResultLimit` (stations per search page, 10–500).
 
 Closing the player tab stops playback; hiding it (switching tabs) does not.
 
 ## Releasing a new version
 
 1. Bump `version` in `package.json` and commit.
-2. Tag and push: `git tag v0.2.0 && git push origin main v0.2.0`
+2. Tag and push: `git tag v0.3.0 && git push origin main v0.3.0`
 3. GitHub Actions compiles, packages the `.vsix` and publishes the release automatically.
 
 ## Development

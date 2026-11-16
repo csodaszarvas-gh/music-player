@@ -2,7 +2,7 @@
   "name": "music-player",
   "displayName": "Music Player",
   "description": "Listen to internet radio (Radio Browser) and local audio/video files without leaving the IDE.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "sky",
   "license": "MIT",
   "repository": {
@@ -100,6 +100,12 @@
         "title": "Top Radio Stations",
         "category": "Music Player",
         "icon": "$(flame)"
+      },
+      {
+        "command": "musicPlayer.loadMoreResults",
+        "title": "Load More Stations",
+        "category": "Music Player",
+        "icon": "$(arrow-down)"
       },
       {
         "command": "musicPlayer.playStation",
@@ -253,6 +259,10 @@
         {
           "command": "musicPlayer.removeRoot",
           "when": "false"
+        },
+        {
+          "command": "musicPlayer.loadMoreResults",
+          "when": "false"
         }
       ]
     },
@@ -271,7 +281,7 @@
           "default": 100,
           "minimum": 10,
           "maximum": 500,
-          "description": "Maximum number of radio stations returned by a search."
+          "description": "Number of radio stations fetched per search page. Use Load More at the bottom of the results to fetch further pages."
         }
       }
     }

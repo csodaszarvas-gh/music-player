@@ -31,11 +31,13 @@ function resultLimit(): number {
 
 export function registerCommands(deps: CommandDeps): vscode.Disposable {
   const { player, radio, library, fileServer } = deps;
+  let loadingMore = false;
 
   const runSearch = async (label: string, opts: Omit<SearchOptions, 'limit'>) => {
     try {
-      const stations = await searchStations({ ...opts, limit: resultLimit() });
-      radio.setResults(stations, label);
+      const pageSize = resultLimit();
+      const stations = await searchStations({ ...opts, limit: pageSize });
+      radio.setResults(stations, label, opts, pageSize);
       deps.updateContextKeys();
       if (!stations.length) {
         vscode.window.showInformationMessage('Music Player: no stations found for this search.');
@@ -92,6 +94,28 @@ export function registerCommands(deps: CommandDeps): vscode.Disposable {
 
     vscode.commands.registerCommand('musicPlayer.topStations', async () => {
       await runSearch('Top Stations', {});
+    }),
+
+    vscode.commands.registerCommand('musicPlayer.loadMoreResults', async () => {
+      const query = radio.currentQuery;
+      if (!query || !radio.canLoadMore || loadingMore) { return; }
+      loadingMore = true;
+      const pageSize = resultLimit();
+      try {
+        const more = await vscode.window.withProgress(
+          { location: vscode.ProgressLocation.Window, title: 'Loading more stations…' },
+          () => searchStations({ ...query, limit: pageSize, offset: radio.nextOffset })
+        );
+        radio.appendResults(more, pageSize);
+        deps.updateContextKeys();
+        if (!more.length) {
+          vscode.window.showInformationMessage('Music Player: no more stations for this search.');
+        }
+      } catch (err) {
+        vscode.window.showErrorMessage('Music Player: could not load more stations (' + (err instanceof Error ? err.message : String(err)) + ').');
+      } finally {
+        loadingMore = false;
+      }
     }),
 
     vscode.commands.registerCommand('musicPlayer.playStation', (arg: StationItem | Station) => {

@@ -32,6 +32,7 @@ export interface SearchOptions {
   language?: string;
   codec?: string;
   limit?: number;
+  offset?: number;
 }
 
 const MIRRORS = [
@@ -87,6 +88,7 @@ export async function searchStations(opts: SearchOptions): Promise<Station[]> {
   if (opts.language) { params.set('language', opts.language); }
   if (opts.codec) { params.set('codec', opts.codec); }
   params.set('limit', String(opts.limit ?? 100));
+  if (opts.offset) { params.set('offset', String(opts.offset)); }
   params.set('order', 'clickcount');
   params.set('reverse', 'true');
   params.set('hidebroken', 'true');
