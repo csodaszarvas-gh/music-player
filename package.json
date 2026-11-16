@@ -2,7 +2,7 @@
   "name": "music-player",
   "displayName": "Music Player",
   "description": "Listen to internet radio (Radio Browser) and local audio/video files without leaving the IDE.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "sky",
   "license": "MIT",
   "repository": {
@@ -76,6 +76,24 @@
         "title": "Browse Radio by Tag",
         "category": "Music Player",
         "icon": "$(tag)"
+      },
+      {
+        "command": "musicPlayer.browseCountries",
+        "title": "Browse Radio by Country",
+        "category": "Music Player",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "musicPlayer.browseLanguages",
+        "title": "Browse Radio by Language",
+        "category": "Music Player",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "musicPlayer.browseCodecs",
+        "title": "Browse Radio by Codec",
+        "category": "Music Player",
+        "icon": "$(file-code)"
       },
       {
         "command": "musicPlayer.topStations",
@@ -157,9 +175,24 @@
           "group": "navigation@2"
         },
         {
+          "command": "musicPlayer.browseCountries",
+          "when": "view == musicPlayer.radioView",
+          "group": "navigation@3"
+        },
+        {
           "command": "musicPlayer.topStations",
           "when": "view == musicPlayer.radioView",
           "group": "1_more@1"
+        },
+        {
+          "command": "musicPlayer.browseLanguages",
+          "when": "view == musicPlayer.radioView",
+          "group": "1_more@2"
+        },
+        {
+          "command": "musicPlayer.browseCodecs",
+          "when": "view == musicPlayer.radioView",
+          "group": "1_more@3"
         },
         {
           "command": "musicPlayer.addFolder",

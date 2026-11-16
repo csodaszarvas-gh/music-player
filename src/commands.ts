@@ -2,7 +2,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { searchStations, topTags, trackClick, streamUrl, isHls, Station } from './radioBrowser';
+import { searchStations, topTags, topCountries, topLanguages, topCodecs, trackClick, streamUrl, isHls, Station, TagInfo, SearchOptions } from './radioBrowser';
 import { mediaKind } from './library';
 import { FileServer } from './fileServer';
 import { Player } from './player';
@@ -32,7 +32,7 @@ function resultLimit(): number {
 export function registerCommands(deps: CommandDeps): vscode.Disposable {
   const { player, radio, library, fileServer } = deps;
 
-  const runSearch = async (label: string, opts: { name?: string; tag?: string }) => {
+  const runSearch = async (label: string, opts: Omit<SearchOptions, 'limit'>) => {
     try {
       const stations = await searchStations({ ...opts, limit: resultLimit() });
       radio.setResults(stations, label);
@@ -45,6 +45,29 @@ export function registerCommands(deps: CommandDeps): vscode.Disposable {
     }
   };
 
+  // Shared flow for the browse-by pickers (tag, country, language, codec).
+  const browseBy = async (
+    load: () => Promise<TagInfo[]>,
+    what: string,
+    placeHolder: string,
+    toFilter: (name: string) => Omit<SearchOptions, 'limit'>,
+    labelPrefix: string
+  ) => {
+    let items;
+    try {
+      items = await load();
+    } catch (err) {
+      vscode.window.showErrorMessage('Music Player: could not load radio ' + what + ' (' + (err instanceof Error ? err.message : String(err)) + ').');
+      return;
+    }
+    const pick = await vscode.window.showQuickPick(
+      items.map(t => ({ label: t.name, description: t.stationcount + ' stations' })),
+      { placeHolder, matchOnDescription: true }
+    );
+    if (!pick) { return; }
+    await runSearch(labelPrefix + pick.label, toFilter(pick.label));
+  };
+
   const disposables: vscode.Disposable[] = [
     vscode.commands.registerCommand('musicPlayer.searchRadio', async () => {
       const name = await vscode.window.showInputBox({
@@ -55,21 +78,17 @@ export function registerCommands(deps: CommandDeps): vscode.Disposable {
       await runSearch('Results: ' + name.trim(), { name: name.trim() });
     }),
 
-    vscode.commands.registerCommand('musicPlayer.browseTags', async () => {
-      let tags;
-      try {
-        tags = await topTags(150);
-      } catch (err) {
-        vscode.window.showErrorMessage('Music Player: could not load radio tags (' + (err instanceof Error ? err.message : String(err)) + ').');
-        return;
-      }
-      const pick = await vscode.window.showQuickPick(
-        tags.map(t => ({ label: t.name, description: t.stationcount + ' stations' })),
-        { placeHolder: 'Pick a tag to browse stations' }
-      );
-      if (!pick) { return; }
-      await runSearch('Tag: ' + pick.label, { tag: pick.label });
-    }),
+    vscode.commands.registerCommand('musicPlayer.browseTags', () =>
+      browseBy(() => topTags(150), 'tags', 'Pick a tag to browse stations', name => ({ tag: name }), 'Tag: ')),
+
+    vscode.commands.registerCommand('musicPlayer.browseCountries', () =>
+      browseBy(() => topCountries(250), 'countries', 'Pick a country to browse stations', name => ({ country: name }), 'Country: ')),
+
+    vscode.commands.registerCommand('musicPlayer.browseLanguages', () =>
+      browseBy(() => topLanguages(150), 'languages', 'Pick a language to browse stations', name => ({ language: name }), 'Language: ')),
+
+    vscode.commands.registerCommand('musicPlayer.browseCodecs', () =>
+      browseBy(() => topCodecs(50), 'codecs', 'Pick a codec to browse stations', name => ({ codec: name }), 'Codec: ')),
 
     vscode.commands.registerCommand('musicPlayer.topStations', async () => {
       await runSearch('Top Stations', {});

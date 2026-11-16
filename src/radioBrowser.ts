@@ -27,7 +27,10 @@ export interface TagInfo {
 export interface SearchOptions {
   name?: string;
   tag?: string;
+  country?: string;
   countrycode?: string;
+  language?: string;
+  codec?: string;
   limit?: number;
 }
 
@@ -46,7 +49,7 @@ async function getJson(url: string, timeoutMs = 10000): Promise<unknown> {
   try {
     const res = await fetch(url, {
       signal: ctrl.signal,
-      headers: { 'User-Agent': 'MusicPlayerExtension/0.1' }
+      headers: { 'User-Agent': 'MusicPlayerExtension/0.2' }
     });
     if (!res.ok) {
       throw new Error('HTTP ' + res.status + ' for ' + url);
@@ -79,7 +82,10 @@ export async function searchStations(opts: SearchOptions): Promise<Station[]> {
   const params = new URLSearchParams();
   if (opts.name) { params.set('name', opts.name); }
   if (opts.tag) { params.set('tag', opts.tag); }
+  if (opts.country) { params.set('country', opts.country); }
   if (opts.countrycode) { params.set('countrycode', opts.countrycode); }
+  if (opts.language) { params.set('language', opts.language); }
+  if (opts.codec) { params.set('codec', opts.codec); }
   params.set('limit', String(opts.limit ?? 100));
   params.set('order', 'clickcount');
   params.set('reverse', 'true');
@@ -91,6 +97,24 @@ export async function searchStations(opts: SearchOptions): Promise<Station[]> {
 export async function topTags(limit = 100): Promise<TagInfo[]> {
   const rows = await api('/json/tags?order=stationcount&reverse=true&limit=' + limit);
   return Array.isArray(rows) ? (rows as TagInfo[]) : [];
+}
+
+// Countries, languages and codecs all return the same {name, stationcount} shape.
+async function topBy(kind: 'countries' | 'languages' | 'codecs', limit: number): Promise<TagInfo[]> {
+  const rows = await api('/json/' + kind + '?order=stationcount&reverse=true&limit=' + limit);
+  return Array.isArray(rows) ? (rows as TagInfo[]) : [];
+}
+
+export function topCountries(limit = 250): Promise<TagInfo[]> {
+  return topBy('countries', limit);
+}
+
+export function topLanguages(limit = 150): Promise<TagInfo[]> {
+  return topBy('languages', limit);
+}
+
+export function topCodecs(limit = 50): Promise<TagInfo[]> {
+  return topBy('codecs', limit);
 }
 
 // Best-effort community click counter; never blocks or fails playback.
